@@ -1,7 +1,8 @@
-import express from 'express'
+const express = require('express')
+const accountRouter = express.Router()
 
-const router = express.Router()
+accountRouter.get('/:roles')
 
-router.get('/:roles')
+module.exports = accountRouter
 
-export { router }
+export {}

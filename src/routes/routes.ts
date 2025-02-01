@@ -1,8 +1,11 @@
-import express from 'express'
-import { router as adminRouter } from './admin/admin.ts'
+const express = require('express')
+const admin = require('./admin/admin.ts')
 
 const router = express.Router()
 
-router.use('/admin', adminRouter)
+console.log(admin)
+router.use('/admin', admin)
 
-export { router }
+module.exports = router
+
+export {}

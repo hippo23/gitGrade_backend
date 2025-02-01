@@ -1,10 +1,12 @@
-import express from 'express'
-import { router as accountRouter } from './accounts/accounts.ts'
-import { router as courseRouter } from './course/course.ts'
+const express = require('express')
+const account = require('./accounts/accounts.ts')
+const course = require('./course/course.ts')
 
-const router = express.Router()
+const adminRouter = express.Router()
 
-router.use('/accounts', accountRouter)
-router.use('/course', courseRouter)
+adminRouter.use('/accounts', account)
+adminRouter.use('/course', course)
 
-export { router }
+module.exports = adminRouter
+
+export {}
