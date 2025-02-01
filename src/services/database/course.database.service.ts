@@ -1,4 +1,7 @@
 const course_models = require('./../../models/course.models')
+const winston = require('winston')
+
+const logger = winston.loggers.get('defaultLogger')
 
 module.exports = {
   getStudentsOfSection: async ({
@@ -12,7 +15,7 @@ module.exports = {
       })
       return students
     } catch (err) {
-      console.log('SERVICE: Error in getting students of section.')
+      logger.error('SERVICE: Error in getting students of section.')
       throw err
     }
   },
@@ -23,7 +26,7 @@ module.exports = {
       })
       return sections
     } catch (err) {
-      console.log('SERVICE: Error in retrieving sections of the course.')
+      logger.error('SERVICE: Error in retrieving sections of the course.')
       throw err
     }
   },
@@ -32,7 +35,7 @@ module.exports = {
       const courses = await course_models.selectAllCourse()
       return courses
     } catch (err) {
-      console.log('SERVICE: Error in retrieving courses.')
+      logger.error('SERVICE: Error in retrieving courses.')
       throw err
     }
   },
@@ -52,7 +55,7 @@ module.exports = {
         description: description,
       })
     } catch (err) {
-      console.log('SERVICE: Error in creating course.')
+      logger.error('SERVICE: Error in creating course.')
       throw err
     }
   },
@@ -66,7 +69,7 @@ module.exports = {
         courseSectionId: courseSectionId,
       })
     } catch (err) {
-      console.log('SERVICE: Error in deploying student grades.')
+      logger.error('SERVICE: Error in deploying student grades.')
       throw err
     }
   },
@@ -87,30 +90,26 @@ module.exports = {
         teacherIds: teacherIds,
       })
     } catch (err) {
-      console.log('SERVICE: Error in updating teachers of the section.')
+      logger.error('SERVICE: Error in updating teachers of the section.')
       throw err
     }
   },
-  updateCourseDetails: async ({
-    courseId,
-    units,
-    description,
-    name,
+  updateCourseBulk: async ({
+    updates,
   }: {
-    courseId: number | string
-    units: number
-    description: string
-    name: string
+    updates: {
+      courseId: number
+      description: string
+      units: number
+      name: string
+    }[]
   }) => {
     try {
-      await course_models.setCourse({
-        courseId: courseId,
-        units: units,
-        description: description,
-        name: name,
+      await course_models.setCourseBulk({
+        updates: updates,
       })
     } catch (err) {
-      console.log('SERVICE: Error in updating the course details.')
+      logger.error('SERVICE: Error in updating the course details.')
       throw err
     }
   },
@@ -118,7 +117,7 @@ module.exports = {
     try {
       await course_models.deleteCourse({ courseId: courseId })
     } catch (err) {
-      console.log('SERVICE: Error in deleting the course.')
+      logger.error('SERVICE: Error in deleting the course.')
       throw err
     }
   },
@@ -127,7 +126,7 @@ module.exports = {
       const semesters = await course_models.selectSemesters()
       return semesters
     } catch (err) {
-      console.log('SERVICE: Error in retrieving semesters.')
+      logger.error('SERVICE: Error in retrieving semesters.')
       throw err
     }
   },
@@ -136,7 +135,7 @@ module.exports = {
       const sessions = await course_models.selectCalendarYears()
       return sessions
     } catch (err) {
-      console.log('SERVICE: Error in retrieving calendar sessions.')
+      logger.error('SERVICE: Error in retrieving calendar sessions.')
       throw err
     }
   },
@@ -156,7 +155,7 @@ module.exports = {
         semesterId: semesterId,
       })
     } catch (err) {
-      console.log('SERVICE: Error in updating section details.')
+      logger.error('SERVICE: Error in updating section details.')
       throw err
     }
   },
@@ -179,7 +178,7 @@ module.exports = {
         studentIds: addedStudentIds,
       })
     } catch (err) {
-      console.log('SERVICE: Error in updating the students of a section.')
+      logger.error('SERVICE: Error in updating the students of a section.')
       throw err
     }
   },

@@ -1,4 +1,8 @@
+import { Request, Response } from 'express'
 const course_service = require('./../../services/database/course.database.service')
+const winston = require('winston')
+
+const logger = winston.loggers.get('defaultLogger')
 
 module.exports = {
   createCourseController: async (req, res) => {
@@ -6,16 +10,35 @@ module.exports = {
       await course_service.createCourse(req.body)
       res.send('Request succesful!')
     } catch (err) {
-      console.log("CONTROLLER: Can't create the course.")
+      logger.error("CONTROLLER: Can't create the course.")
       throw err
     }
   },
   deleteCourseController: async (req: Request, res: Response) => {},
-  updateCourseController: async (req: Request, res: Response) => {
+  updateCourseController: async (
+    req: Request<
+      object,
+      object,
+      {
+        is_bulk: boolean
+        updates: {
+          courseId: number
+          description: string
+          units: number
+          name: string
+        }
+      }
+    >,
+    res: Response,
+  ) => {
     try {
-      const is_bulk = req.body?.bulk as boolean
+      logger.info(req.body.updates)
+      if (req.body.is_bulk) {
+        await course_service.updateCourseBulk({ updates: req.body.updates })
+      }
+      res.send('Succesfully updated course!')
     } catch (err) {
-      console.log("CONTROLLER: Can't updated courses.")
+      logger.error("CONTROLLER: Can't updated courses.")
       throw err
     }
   },
@@ -24,7 +47,7 @@ module.exports = {
       const courses = await course_service.getCourses()
       res.json(courses)
     } catch (err) {
-      console.log("CONTROLLER: Can't get courses.")
+      logger.error("CONTROLLER: Can't get courses.")
       throw err
     }
   },

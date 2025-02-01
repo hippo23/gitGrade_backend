@@ -1,5 +1,8 @@
 import format from 'pg-format'
 import { stcf_db } from './../config/database.config'
+const winston = require('winston')
+
+const logger = winston.loggers.get('defaultLogger')
 
 module.exports = {
   selectStudentsOfSection: async ({
@@ -32,7 +35,7 @@ module.exports = {
 
       return res.rows
     } catch (err) {
-      console.log(
+      logger.error(
         'MODE: Error was encountered while selecting students of sectoin.',
       )
       throw err
@@ -72,7 +75,7 @@ module.exports = {
 
       return res.rows
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEl: Error was encountered while getting sections of course.',
       )
       throw err
@@ -85,7 +88,9 @@ module.exports = {
         SELECT
             courseid, name, description, units
         FROM
-            course;
+            course
+        ORDER BY
+          name ASC
         `,
       )
 
@@ -93,7 +98,7 @@ module.exports = {
 
       return res.rows
     } catch (err) {
-      console.log('MODEL: An error was encountered while getting all courses.')
+      logger.error('MODEL: An error was encountered while getting all courses.')
       throw err
     }
   },
@@ -118,7 +123,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while merging student grades.',
       )
       throw err
@@ -146,7 +151,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while assigning teachers to a section.',
       )
       throw err
@@ -183,7 +188,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while deleting the teachers of a section.',
       )
       throw err
@@ -208,18 +213,18 @@ module.exports = {
       UPDATE course
       SET
           name = elem->>'name',
-          units = elem->>'units',
+          units = (elem->>'units')::int,
           description = elem->>'description'
       FROM data,
           jsonb_array_elements(data) AS elem
-      WHERE course.courseid = (elem->>'courseid')::int;
+      WHERE course.courseid = (elem->>'courseId')::int
       `,
-        updates,
+        [JSON.stringify(updates)],
       )
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while updating the details of a course.',
       )
       throw err
@@ -237,7 +242,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log('MODEL: An error was encountered while deleting a course.')
+      logger.error('MODEL: An error was encountered while deleting a course.')
       throw err
     }
   },
@@ -262,7 +267,7 @@ module.exports = {
 
       return res.rows
     } catch (err) {
-      console.log('MODEL: An error was encountered while selecting semesters.')
+      logger.error('MODEL: An error was encountered while selecting semesters.')
       throw err
     }
   },
@@ -278,7 +283,7 @@ module.exports = {
 
       return res.rows
     } catch (err) {
-      console.log(
+      logger.error(
         'MODE: An error was encountered while selecting all the calendar sessions.',
       )
       throw err
@@ -309,7 +314,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while updating the details of a section',
       )
       throw err
@@ -338,7 +343,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log(
+      logger.error(
         'MODEL: An error was encountered while deleting the students of a section.',
       )
       throw err
@@ -367,7 +372,7 @@ module.exports = {
 
       await stcf_db.query(query)
     } catch (err) {
-      console.log('MODEL: Error in inserting course into table.')
+      logger.error('MODEL: Error in inserting course into table.')
       throw err
     }
   },

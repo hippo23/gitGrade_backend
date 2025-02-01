@@ -8,7 +8,11 @@ const jsonParser = bodyParser.json()
 // full course operations
 courseRouter.get('/', adminCourseController.retrieveCourseController)
 courseRouter.delete('/:courseId', adminCourseController.deleteCourseController)
-courseRouter.put('/', jsonParser, adminCourseController.updateCourseController)
+courseRouter.patch(
+  '/',
+  jsonParser,
+  adminCourseController.updateCourseController,
+)
 courseRouter.post('/', jsonParser, adminCourseController.createCourseController)
 
 // for the teacher
