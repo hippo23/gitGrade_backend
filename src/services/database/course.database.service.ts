@@ -1,86 +1,59 @@
 const course_models = require('./../../models/course.models')
-const winston = require('winston')
+const logErrorWrapper = require('@src/utils/proxy_decorators')
 
-const logger = winston.loggers.get('defaultLogger')
-
-module.exports = {
-  getStudentsOfSection: async ({
-    sectionId,
-  }: {
-    sectionId: number | string
-  }) => {
-    try {
+module.exports = new Proxy(
+  {
+    getStudentsOfSection: async ({
+      courseSectionId,
+    }: {
+      courseSectionId: number | string
+    }) => {
       const students = await course_models.selectStudentsOfSection({
-        sectionId: sectionId,
+        courseSectionId: courseSectionId,
       })
       return students
-    } catch (err) {
-      logger.error('SERVICE: Error in getting students of section.')
-      throw err
-    }
-  },
-  getCourseSections: async ({ courseId }: { courseId: number | string }) => {
-    try {
+    },
+    getCourseSections: async ({ courseId }: { courseId: number | string }) => {
       const sections = await course_models.selectAllCourseSection({
         courseId: courseId,
       })
       return sections
-    } catch (err) {
-      logger.error('SERVICE: Error in retrieving sections of the course.')
-      throw err
-    }
-  },
-  getCourses: async () => {
-    try {
+    },
+    getCourses: async () => {
       const courses = await course_models.selectAllCourse()
       return courses
-    } catch (err) {
-      logger.error('SERVICE: Error in retrieving courses.')
-      throw err
-    }
-  },
-  createCourse: async ({
-    name,
-    units,
-    description,
-  }: {
-    name: string
-    units: number
-    description: string
-  }) => {
-    try {
+    },
+    createCourse: async ({
+      name,
+      units,
+      description,
+    }: {
+      name: string
+      units: number
+      description: string
+    }) => {
       await course_models.insertCourse({
         name: name,
         units: units,
         description: description,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in creating course.')
-      throw err
-    }
-  },
-  deployStudentGrades: async ({
-    courseSectionId,
-  }: {
-    courseSectionId: number | string
-  }) => {
-    try {
+    },
+    deployStudentGrades: async ({
+      courseSectionId,
+    }: {
+      courseSectionId: number
+    }) => {
       await course_models.mergeStudentGrades({
-        courseSectionId: courseSectionId,
+        courseSectionId,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in deploying student grades.')
-      throw err
-    }
-  },
-  updateTeachersOfSection: async ({
-    courseSectionId,
-    teacherIds,
-  }: {
-    courseSectionId: number | string
-    teacherIds: number[] | string
-  }) => {
-    try {
+    },
+    updateTeachersOfSection: async ({
+      courseSectionId,
+      teacherIds,
+    }: {
+      courseSectionId: number | string
+      teacherIds: number[] | string[]
+    }) => {
       await course_models.deleteTeachersOfSection({
         courseSectionId: courseSectionId,
         teacherIds: null,
@@ -89,99 +62,118 @@ module.exports = {
         courseSectionId: courseSectionId,
         teacherIds: teacherIds,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in updating teachers of the section.')
-      throw err
-    }
-  },
-  updateCourseBulk: async ({
-    updates,
-  }: {
-    updates: {
-      courseId: number
-      description: string
-      units: number
-      name: string
-    }[]
-  }) => {
-    try {
+    },
+    updateCourseBulk: async ({
+      updates,
+    }: {
+      updates: {
+        courseId: number
+        description: string
+        units: number
+        name: string
+      }[]
+    }) => {
       await course_models.setCourseBulk({
         updates: updates,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in updating the course details.')
-      throw err
-    }
-  },
-  deleteCourse: async ({ courseId }: { courseId: number | string }) => {
-    try {
+    },
+    deleteCourse: async ({ courseId }: { courseId: number | string }) => {
       await course_models.deleteCourse({ courseId: courseId })
-    } catch (err) {
-      logger.error('SERVICE: Error in deleting the course.')
-      throw err
-    }
-  },
-  getCalendarSemesters: async () => {
-    try {
-      const semesters = await course_models.selectSemesters()
-      return semesters
-    } catch (err) {
-      logger.error('SERVICE: Error in retrieving semesters.')
-      throw err
-    }
-  },
-  getCalendarSessions: async () => {
-    try {
-      const sessions = await course_models.selectCalendarYears()
-      return sessions
-    } catch (err) {
-      logger.error('SERVICE: Error in retrieving calendar sessions.')
-      throw err
-    }
-  },
-  updateSectionDetails: async ({
-    courseSectionId,
-    maximumCapacity,
-    semesterId,
-  }: {
-    courseSectionId: number | string
-    maximumCapacity: number
-    semesterId: number | string
-  }) => {
-    try {
+    },
+    updateSectionDetails: async ({
+      courseSectionId,
+      maximumCapacity,
+      semesterId,
+      name,
+    }: {
+      courseSectionId: number | string
+      maximumCapacity: number
+      semesterId: number | string
+      name: string
+    }) => {
       await course_models.setSection({
         courseSectionId: courseSectionId,
         maximumCapacity: maximumCapacity,
         semesterId: semesterId,
+        name: name,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in updating section details.')
-      throw err
-    }
-  },
-  updateStudentsOfSection: async ({
-    deletedStudentIds,
-    addedStudentIds,
-    courseSectionId,
-  }: {
-    deletedStudentIds: number[] | string[]
-    addedStudentIds: number[] | string[]
-    courseSectionId: number | string
-  }) => {
-    try {
+    },
+    updateStudentsOfSection: async ({
+      changedStudents = [],
+    }: {
+      changedStudents: object[]
+    }) => {
+      await course_models.setStudentsOfSection({
+        changedStudents,
+      })
+    },
+    getSectionsOfCourse: async ({ courseId }: { courseId: number }) => {
+      const sections = await course_models.selectSectionsOfCourse({
+        courseId,
+      })
+      return sections
+    },
+    createSection: async ({
+      courseId,
+      name,
+      maximumCapacity,
+      semesterId,
+    }: {
+      courseId: number
+      name: string
+      maximumCapacity: number
+      semesterId: number
+    }) => {
+      const courseSectionId = await course_models.insertSection({
+        courseId,
+        name,
+        maximumCapacity,
+        semesterId,
+      })
+      return courseSectionId
+    },
+    deleteStudentsOfSection: async ({
+      deletedIds = [],
+      courseSectionId = 0,
+    }: {
+      deletedIds: number[]
+      courseSectionId: number
+    }) => {
       await course_models.deleteStudentsOfSection({
-        courseSectionId: courseSectionId,
-        studentIds: deletedStudentIds,
+        studentIds: deletedIds,
+        courseSectionId,
       })
-      await course_models.insertStudentsOfSection({
-        courseSectionId: courseSectionId,
-        studentIds: addedStudentIds,
+    },
+    addStudentsToSection: async ({
+      studentIds,
+      courseSectionId,
+    }: {
+      studentIds: number[]
+      courseSectionId: number
+    }) => {
+      await course_models.insertStudentsToSection({
+        studentIds,
+        courseSectionId,
       })
-    } catch (err) {
-      logger.error('SERVICE: Error in updating the students of a section.')
-      throw err
-    }
+    },
+    clearStudentGrades: async ({
+      studentIds,
+      courseSectionId,
+    }: {
+      studentIds: number[]
+      courseSectionId: number
+    }) => {
+      await course_models.clearFinalGrades({ studentIds, courseSectionId })
+    },
   },
-}
+  {
+    get(target, prop) {
+      if (typeof target[prop] === 'function') {
+        return logErrorWrapper(target[prop], prop, 'COURSE_SERVICE')
+      }
+      return target[prop]
+    },
+  },
+)
 
 export {}

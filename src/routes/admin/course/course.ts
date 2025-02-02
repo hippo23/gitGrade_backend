@@ -1,3 +1,4 @@
+import { Request, Response } from 'express'
 const bodyParser = require('body-parser')
 const express = require('express')
 const adminCourseController = require('../../../controllers/admin/admin_course.controllers')
@@ -15,33 +16,59 @@ courseRouter.patch(
 )
 courseRouter.post('/', jsonParser, adminCourseController.createCourseController)
 
+// to get all the sections of a course
+courseRouter.get(
+  '/:courseId/section',
+  adminCourseController.retrieveSectionsController,
+)
+
+courseRouter.patch(
+  '/section',
+  jsonParser,
+  adminCourseController.updateSectionController,
+)
+
+courseRouter.post(
+  '/section',
+  jsonParser,
+  adminCourseController.createSectionController,
+)
+
 // for the teacher
 courseRouter.get(
   '/section/:sectionId/teacher',
   adminCourseController.retrieveTeachersController,
 )
-courseRouter.post(
+
+courseRouter.patch(
   '/section/teacher',
+  jsonParser,
   adminCourseController.updateTeachersController,
-)
-courseRouter.delete(
-  '/section/:sectionId/teacher/:teacherIds',
-  adminCourseController.deleteTeachersController,
 )
 
 // for the student
 courseRouter.get(
-  '/section/:sectionId/student/',
+  '/section/:courseSectionId/student/',
   adminCourseController.retrieveStudentsController,
 )
-courseRouter.post('/student', adminCourseController.updateStudentsController)
-courseRouter.delete(
-  '/section/:sectionId/student/:studentId',
-  adminCourseController.deleteStudentsController,
+courseRouter.patch(
+  '/section/student',
+  jsonParser,
+  adminCourseController.updateStudentsController,
+)
+
+courseRouter.post(
+  '/section/student',
+  jsonParser,
+  adminCourseController.addStudentsController,
 )
 
 // for grades
-courseRouter.put('/grades', adminCourseController.deployStudentGradesController) // clear or deploy grades
+courseRouter.patch(
+  '/section/grades',
+  jsonParser,
+  adminCourseController.handleStudentGradesController,
+) // clear or deploy grades
 
 module.exports = courseRouter
 

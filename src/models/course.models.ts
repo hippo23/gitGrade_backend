@@ -1,32 +1,33 @@
 import format from 'pg-format'
 import { stcf_db } from './../config/database.config'
-const winston = require('winston')
+const logErrorWrapper = require('./../utils/proxy_decorators')
 
-const logger = winston.loggers.get('defaultLogger')
-
-module.exports = {
-  selectStudentsOfSection: async ({
-    courseSectionId,
-  }: {
-    courseSectionId: string
-  }) => {
-    try {
+module.exports = new Proxy(
+  {
+    selectStudentsOfSection: async ({
+      courseSectionId,
+    }: {
+      courseSectionId: string
+    }) => {
       const query = format(
         `
         SELECT
-          person.personid, studentcoursesection.studentcoursesectionid, pendingstudentcoursesection.pendingstudentcoursesectionid, firstname, lastname, middlename, studentcoursesection.grade AS visiblegrade, pendingstudentcoursesection.grade AS grade, grade_status AS gradestatus, remarks
-        FROM studentcoursesection
+            person.personid, organizationpersonrole.organizationpersonroleid, studentcoursesection.studentcoursesectionid,
+            pendingstudentcoursesection.pendingstudentcoursesectionid, firstname, lastname, middlename,
+            studentcoursesection.grade AS visiblegrade, pendingstudentcoursesection.grade AS grade,
+            grade_status AS gradestatus, remarks  FROM studentcoursesection
         JOIN
-          organizationpersonrole ON
-            studentcoursesection.organizationpersonroleid = organizationpersonrole.organizationpersonroleid
+                organizationpersonrole ON
+                    studentcoursesection.organizationpersonroleid = organizationpersonrole.organizationpersonroleid
         JOIN
-          person ON
-            organizationpersonrole.personid = person.personid
+                person ON
+                    organizationpersonrole.personid = person.personid
         JOIN
-          pendingstudentcoursesection ON
-            studentcoursesection.studentcoursesectionid = pendingstudentcoursesection.studentcoursesectionid
+                pendingstudentcoursesection ON
+                    studentcoursesection.studentcoursesectionid = pendingstudentcoursesection.studentcoursesectionid
         WHERE
-          coursesectionid = %L;
+            coursesectionid = %L;
+
       `,
         courseSectionId,
       )
@@ -34,55 +35,51 @@ module.exports = {
       const res = await stcf_db.query(query)
 
       return res.rows
-    } catch (err) {
-      logger.error(
-        'MODE: Error was encountered while selecting students of sectoin.',
-      )
-      throw err
-    }
-  },
-  selectAllCourseSection: async ({
-    courseId,
-  }: {
-    courseId: number | string
-  }) => {
-    try {
+    },
+    selectSectionsOfCourse: async ({
+      courseId,
+    }: {
+      courseId: number | string
+    }) => {
       const query = format(
         `
         SELECT
             coursesection.coursesectionid,
             coursesection.name,
+            coursesection.maximumcapacity,
+            coursesection.organizationcalendarsemesterid AS semesterid,
+            organizationcalendar.organizationcalendarid,
             JSON_AGG(JSON_BUILD_OBJECT(
-                        'personId', organizationpersonrole.organizationpersonroleid,
+                        'teacherId', organizationpersonrole.organizationpersonroleid,
                         'firstname', person.firstname,
                         'lastname', person.lastname
                      )) AS teachers
-        FROM organizationpersonrole
-        JOIN facultysectionassignment ON organizationpersonrole.organizationpersonroleid = facultysectionassignment.organizationpersonroleid
-        JOIN person ON organizationpersonrole.personid = person.personid
-        JOIN coursesection ON facultysectionassignment.coursesectionid = coursesection.coursesectionid
+        FROM coursesection
+        LEFT JOIN facultysectionassignment ON coursesection.coursesectionid = facultysectionassignment.coursesectionid
+        LEFT JOIN organizationpersonrole ON facultysectionassignment.organizationpersonroleid = organizationpersonrole.organizationpersonroleid
+        LEFT JOIN person ON organizationpersonrole.personid = person.personid
         JOIN course ON coursesection.courseid = course.courseid
         JOIN organizationcalendarsemester on coursesection.organizationcalendarsemesterid = organizationcalendarsemester.organizationcalendarsemesterid
         JOIN organizationcalendar on organizationcalendarsemester.organizationcalendarid = organizationcalendar.organizationcalendarid
         WHERE
             course.courseid = %L
-        GROUP BY coursesection.coursesectionid, coursesection.name
+        GROUP BY coursesection.coursesectionid, coursesection.name, coursesection.maximumcapacity, semesterid, organizationcalendar.organizationcalendarid
       `,
         courseId,
       )
 
       const res = await stcf_db.query(query)
+      const final_res = res.rows.map((row) => {
+        if (row.teachers[0].teacherId == null) {
+          row.teachers = []
+        }
 
-      return res.rows
-    } catch (err) {
-      logger.error(
-        'MODEl: Error was encountered while getting sections of course.',
-      )
-      throw err
-    }
-  },
-  selectAllCourse: async () => {
-    try {
+        return row
+      })
+
+      return final_res
+    },
+    selectAllCourse: async () => {
       const query = format(
         `
         SELECT
@@ -97,74 +94,55 @@ module.exports = {
       const res = await stcf_db.query(query)
 
       return res.rows
-    } catch (err) {
-      logger.error('MODEL: An error was encountered while getting all courses.')
-      throw err
-    }
-  },
-  mergeStudentGrades: async ({
-    courseSectionId,
-  }: {
-    courseSectionId: number | string
-  }) => {
-    try {
+    },
+    mergeStudentGrades: async ({
+      courseSectionId,
+    }: {
+      courseSectionId: number
+    }) => {
       const query = format(
         `
-        MERGE INTO studentcoursesection AS target
-        USING pendingstudentcoursesection AS source
-        ON source.studentcoursesectionid = target.studentcoursesectionid
-        WHEN MATCHED AND source.grade_status = 'approved' AND coursesectionid = %L THEN
-            UPDATE SET target.grade = source.grade
+        MERGE INTO studentcoursesection
+        USING pendingstudentcoursesection
+        ON studentcoursesection.studentcoursesectionid = pendingstudentcoursesection.studentcoursesectionid
+        WHEN MATCHED AND pendingstudentcoursesection.grade_status = 'approved'
+        AND studentcoursesection.coursesectionid = %L THEN
+            UPDATE SET grade = pendingstudentcoursesection.grade
         WHEN NOT MATCHED THEN
-            DO NOTHING
+            DO NOTHING;
         `,
         courseSectionId,
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while merging student grades.',
-      )
-      throw err
-    }
-  },
-  setTeachersOfSection: async ({
-    teacherIds,
-    courseSectionId,
-  }: {
-    teacherIds: number[] | string[]
-    courseSectionId: number | string
-  }) => {
-    try {
+    },
+    setTeachersOfSection: async ({
+      teacherIds,
+      courseSectionId,
+    }: {
+      teacherIds: number[] | string[]
+      courseSectionId: number | string
+    }) => {
       const query = format(
         `
-        INSERT INTO facultysectionassignment
+        INSERT INTO facultysectionassignment (organizationpersonroleid, coursesectionid)
         SELECT teacherid, %L
-        FROM UNNEST(
-        %L
-        ) AS teacherid;
+        FROM UNNEST(ARRAY[%L]::integer[]) AS teacherid
+        ON CONFLICT DO NOTHING;
         `,
         courseSectionId,
         teacherIds,
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while assigning teachers to a section.',
-      )
-      throw err
-    }
-  },
-  deleteTeachersOfSection: async ({
-    teacherIds,
-    courseSectionId,
-  }: {
-    teacherIds: number[] | string[]
-    courseSectionId: number | string
-  }) => {
-    try {
+    },
+    deleteTeachersOfSection: async ({
+      teacherIds,
+      courseSectionId,
+    }: {
+      teacherIds: number[] | string[]
+      courseSectionId: number | string
+    }) => {
       let query = ''
       if (teacherIds == null) {
         query = format(
@@ -187,24 +165,17 @@ module.exports = {
       }
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while deleting the teachers of a section.',
-      )
-      throw err
-    }
-  },
-  setCourseBulk: async ({
-    updates,
-  }: {
-    updates: {
-      courseSectionid: number
-      units: number
-      description: string
-      name: string
-    }[]
-  }) => {
-    try {
+    },
+    setCourseBulk: async ({
+      updates,
+    }: {
+      updates: {
+        courseSectionid: number
+        units: number
+        description: string
+        name: string
+      }[]
+    }) => {
       const query = format(
         `
       WITH data AS (
@@ -223,15 +194,8 @@ module.exports = {
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while updating the details of a course.',
-      )
-      throw err
-    }
-  },
-  deleteCourse: async ({ courseId }: { courseId: number }) => {
-    try {
+    },
+    deleteCourse: async ({ courseId }: { courseId: number }) => {
       const query = format(
         `
         DELETE FROM course
@@ -241,124 +205,65 @@ module.exports = {
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error('MODEL: An error was encountered while deleting a course.')
-      throw err
-    }
-  },
-  selectSemesters: async () => {
-    try {
-      const query = format(`
-      SELECT
-      JSON_BUILD_OBJECT(
-        organizationcalendar.organizationcalendarid, JSON_AGG(JSON_BUILD_OBJECT(
-                'semester_id', organizationcalendarsemesterid,
-                'semester_type', organizationcalendarsemester.semester
-              )
-            )
-        )
-        FROM organizationcalendarsemester
-        RIGHT JOIN organizationcalendar on organizationcalendarsemester.organizationcalendarid = organizationcalendar.organizationcalendarid
-        GROUP BY organizationcalendar.organizationcalendarid;
-
-      `)
-
-      const res = await stcf_db.query(query)
-
-      return res.rows
-    } catch (err) {
-      logger.error('MODEL: An error was encountered while selecting semesters.')
-      throw err
-    }
-  },
-  selectCalendarYears: async () => {
-    try {
-      const query = format(
-        `
-        SELECT organizationcalendarid, academic_year FROM organizationcalendar;
-        `,
-      )
-
-      const res = await stcf_db.query(query)
-
-      return res.rows
-    } catch (err) {
-      logger.error(
-        'MODE: An error was encountered while selecting all the calendar sessions.',
-      )
-      throw err
-    }
-  },
-  setSection: async ({
-    courseSectionId,
-    maximumCapacity,
-    semesterId,
-  }: {
-    courseSectionId: number | string
-    maximumCapacity: number
-    semesterId: number | string
-  }) => {
-    try {
+    },
+    setSection: async ({
+      courseSectionId,
+      maximumCapacity,
+      semesterId,
+      name,
+    }: {
+      courseSectionId: number | string
+      maximumCapacity: number
+      semesterId: number | string
+      name: string
+    }) => {
       const query = format(
         `
         UPDATE coursesection
         SET
           maximumcapacity = %L,
-          organizationcalendarsemesterid = %L
+          organizationcalendarsemesterid = %L,
+          name = %L
         WHERE coursesectionid = %L;
       `,
-        courseSectionId,
         maximumCapacity,
         semesterId,
+        name,
+        courseSectionId,
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while updating the details of a section',
-      )
-      throw err
-    }
-  },
-  deleteStudentsOfSection: async ({
-    courseSectionId,
-    studentIds,
-  }: {
-    courseSectionId: number | string
-    studentIds: number[] | string
-  }) => {
-    try {
+    },
+    deleteStudentsOfSection: async ({
+      courseSectionId,
+      studentIds,
+    }: {
+      courseSectionId: number
+      studentIds: number[]
+    }) => {
       const query = format(
         `
         DELETE FROM studentcoursesection
         USING person, organizationpersonrole
         WHERE studentcoursesection.organizationpersonroleid = organizationpersonrole.organizationpersonroleid
-        AND person.personid = organizationpersonrole.personid
-        AND personid = ANY(%L)
-        AND studentcoursesectionid = %L;
+        AND organizationpersonrole.organizationpersonroleid = ANY(ARRAY[%L]::integer[])
+        AND studentcoursesection.coursesectionid = %L;
       `,
         studentIds,
         courseSectionId,
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error(
-        'MODEL: An error was encountered while deleting the students of a section.',
-      )
-      throw err
-    }
-  },
-  insertCourse: async ({
-    name,
-    units,
-    description,
-  }: {
-    name: string
-    units: number
-    description: string
-  }) => {
-    try {
+    },
+    insertCourse: async ({
+      name,
+      units,
+      description,
+    }: {
+      name: string
+      units: number
+      description: string
+    }) => {
       const query = format(
         `
       INSERT INTO course (name, units, organizationid, description)
@@ -371,9 +276,108 @@ module.exports = {
       )
 
       await stcf_db.query(query)
-    } catch (err) {
-      logger.error('MODEL: Error in inserting course into table.')
-      throw err
-    }
+    },
+    insertSection: async ({
+      courseId,
+      name,
+      maximumCapacity,
+      semesterId,
+    }: {
+      courseId: number
+      name: string
+      maximumCapacity: number
+      semesterId: number
+    }) => {
+      const query = format(
+        `
+        INSERT INTO coursesection 
+            (maximumcapacity, name, courseid, organizationcalendarsemesterid)
+        VALUES
+            (%L, %L, %L, %L)
+        RETURNING coursesectionid;
+        `,
+        maximumCapacity,
+        name,
+        courseId,
+        semesterId,
+      )
+
+      const res = await stcf_db.query(query)
+
+      return res.rows[0].coursesectionid
+    },
+    setStudentsOfSection: async ({
+      changedStudents,
+    }: {
+      changedStudents: object[]
+    }) => {
+      const query = format(
+        `
+        WITH data AS (
+            SELECT %L::jsonb AS data
+        )
+        UPDATE pendingstudentcoursesection
+        SET
+            grade_status = (elem->>'gradeStatus')::grade_status,
+            remarks = elem->>'remarks',
+            grade = (elem->>'grade')::grade_value
+        FROM data,
+             jsonb_array_elements(data) AS elem
+        WHERE studentcoursesectionid = (elem->>'studentCourseSectionId')::integer;
+        `,
+        [JSON.stringify(changedStudents)],
+      )
+
+      await stcf_db.query(query)
+    },
+    insertStudentsToSection: async ({
+      studentIds,
+      courseSectionId,
+    }: {
+      studentIds: number[]
+      courseSectionId: number
+    }) => {
+      const query = format(
+        `
+        INSERT INTO studentcoursesection (coursesectionid, organizationpersonroleid)
+        SELECT %L, studentid
+        FROM UNNEST(ARRAY[%L]::integer[]) AS studentid
+        ON CONFLICT DO NOTHING;
+      `,
+        courseSectionId,
+        studentIds,
+      )
+
+      await stcf_db.query(query)
+    },
+    clearFinalGrades: async ({
+      studentIds,
+      courseSectionId,
+    }: {
+      studentIds: number[]
+      courseSectionId: number
+    }) => {
+      const query = format(
+        `
+        UPDATE studentcoursesection
+        SET grade = NULL
+        FROM UNNEST(ARRAY[%L]::integer[]) as studentid
+        WHERE studentcoursesection.coursesectionid = %L
+        AND studentcoursesection.organizationpersonroleid = studentid;
+        `,
+        studentIds,
+        courseSectionId,
+      )
+
+      await stcf_db.query(query)
+    },
   },
-}
+  {
+    get(target, prop) {
+      if (typeof target[prop] === 'function') {
+        return logErrorWrapper(target[prop], prop, 'COURSE MODEL')
+      }
+      return target[prop]
+    },
+  },
+)

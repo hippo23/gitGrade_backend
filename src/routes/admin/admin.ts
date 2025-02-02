@@ -1,10 +1,10 @@
 const express = require('express')
-const account = require('./accounts/accounts.ts')
+const users = require('./users/users.ts')
 const course = require('./course/course.ts')
 
 const adminRouter = express.Router()
 
-adminRouter.use('/accounts', account)
+adminRouter.use('/users', users)
 adminRouter.use('/course', course)
 
 module.exports = adminRouter
