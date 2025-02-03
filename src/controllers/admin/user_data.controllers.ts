@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
 const logErrorWrapper = require('@src/utils/proxy_decorators')
+const axios = require('axios').default
 const usersDatabaseService = require('@src/services/database/users.database.service')
+const usersAuthService = require('@src/services/auth/users.auth.service')
 
 module.exports = new Proxy(
   {
@@ -10,6 +12,14 @@ module.exports = new Proxy(
       })
 
       res.json(people)
+    },
+    retrieveAuthAccountsController: async (req: Request, res: Response) => {
+      const users = await usersAuthService.getUserAccounts(req.query)
+      res.json(users)
+    },
+    updateAuthAccountsController: async (req: Request, res: Response) => {
+      await usersAuthService.setUserAccounts(req.body)
+      res.send('Successfully updated Auth accounts!')
     },
   },
   {
@@ -21,3 +31,5 @@ module.exports = new Proxy(
     },
   },
 )
+
+export {}

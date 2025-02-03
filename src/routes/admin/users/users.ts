@@ -6,7 +6,13 @@ const userDataRouter = express.Router()
 const jsonParser = bodyParser.json()
 
 // to get a person of a specific kind
-userDataRouter.get('/', userDataController.retrievePeopleController)
+userDataRouter.get('/auth', userDataController.retrieveAuthAccountsController)
+
+userDataRouter.patch(
+  '/auth',
+  jsonParser,
+  userDataController.updateAuthAccountsController,
+)
 
 module.exports = userDataRouter
 
