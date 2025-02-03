@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 const logErrorWrapper = require('@src/utils/proxy_decorators')
-const axios = require('axios').default
 const usersDatabaseService = require('@src/services/database/users.database.service')
 const usersAuthService = require('@src/services/auth/users.auth.service')
 
@@ -36,6 +35,10 @@ module.exports = new Proxy(
         await usersDatabaseService.deleteUserRoles(req.body)
       }
       res.send('Successfully updated user roles!')
+    },
+    createUserController: async (req: Request, res: Response) => {
+      const personId = await usersDatabaseService.createUser(req.body) // create the user in the database
+      res.send(personId)
     },
   },
   {

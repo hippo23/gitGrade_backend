@@ -28,6 +28,32 @@ module.exports = new Proxy(
     }) => {
       await usersDatabaseModel.addRoles({ roles, personId })
     },
+    createUser: async ({
+      firstname,
+      lastname,
+      middlename,
+      location,
+      birthday,
+      authId,
+    }: {
+      firstname: string
+      lastname: string
+      middlename: string
+      location: string
+      birthday: string
+      authId: string
+    }) => {
+      const { personid } = usersDatabaseModel.insertUser({
+        firstname,
+        lastname,
+        middlename,
+        location,
+        birthday,
+        authId,
+      })
+
+      return personid
+    },
   },
   {
     get(target, prop) {

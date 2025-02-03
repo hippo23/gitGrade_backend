@@ -68,6 +68,39 @@ module.exports = new Proxy(
 
       await stcf_db.query(query)
     },
+    insertUser: async ({
+      firstname,
+      lastname,
+      middlename,
+      location,
+      birthday,
+      authId,
+    }: {
+      firstname: string
+      lastname: string
+      middlename: string
+      location: string
+      birthday: string
+      authId: string
+    }) => {
+      const query = format(
+        `INSERT INTO person 
+          (firstname, lastname, middlename, location, birthday, authid)
+        VALUES
+          (%L, %L, %L, %L, %L::timestamp, %L)
+        RETURNING personid`,
+        firstname,
+        lastname,
+        middlename,
+        location,
+        birthday,
+        authId,
+      )
+
+      const res = await stcf_db.query(query)
+
+      return res.rows[0]
+    },
   },
   {
     get(target, prop) {
@@ -78,3 +111,5 @@ module.exports = new Proxy(
     },
   },
 )
+
+export {}
