@@ -15,7 +15,7 @@ module.exports = new Proxy(
       personId,
     }: {
       roles: string[]
-      personId: string
+      personId: number
     }) => {
       await usersDatabaseModel.deleteRoles({ roles, personId })
     },

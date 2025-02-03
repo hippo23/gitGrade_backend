@@ -4,7 +4,7 @@ const logErrorWrapper = require('./../utils/proxy_decorators')
 
 module.exports = new Proxy(
   {
-    selectPeople: async ({ filterBy }) => {
+    selectPeople: async ({ filterBy = null }) => {
       const query = format(
         `
         SELECT 
@@ -24,6 +24,8 @@ module.exports = new Proxy(
       )
 
       const res = await stcf_db.query(query)
+      console.log(res)
+      console.log('OVER HERE: ', filterBy)
       return res.rows
     },
     deleteRoles: async ({
@@ -33,13 +35,14 @@ module.exports = new Proxy(
       roles: string[]
       personId: number
     }) => {
+      console.log(roles, personId)
       const query = format(
         `
         DELETE FROM organizationpersonrole
-        USING role, person
+        USING role
         WHERE role.roleid = organizationpersonrole.roleid
         AND role.name = ANY(ARRAY[%L]::text[])
-        AND person.personid = %L;
+        AND organizationpersonrole.personid = %L;
         `,
         roles,
         personId,

@@ -29,6 +29,8 @@ userDataRouter.patch(
 // create new user in the database (auth is automated)
 userDataRouter.post('/', jsonParser, userDataController.createUserController)
 
+userDataRouter.get('/', userDataController.retrievePeopleController)
+
 module.exports = userDataRouter
 
 export {}
