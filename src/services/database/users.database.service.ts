@@ -10,6 +10,24 @@ module.exports = new Proxy(
 
       return people
     },
+    deleteUserRoles: async ({
+      roles,
+      personId,
+    }: {
+      roles: string[]
+      personId: string
+    }) => {
+      await usersDatabaseModel.deleteRoles({ roles, personId })
+    },
+    addUserRoles: async ({
+      roles,
+      personId,
+    }: {
+      roles: string[]
+      personId: string
+    }) => {
+      await usersDatabaseModel.addRoles({ roles, personId })
+    },
   },
   {
     get(target, prop) {

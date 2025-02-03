@@ -21,6 +21,22 @@ module.exports = new Proxy(
       await usersAuthService.setUserAccounts(req.body)
       res.send('Successfully updated Auth accounts!')
     },
+    retrieveUserRolesController: async (req: Request, res: Response) => {
+      const roles = await usersAuthService.getUserRoles(req.params)
+      res.json(roles)
+    },
+    handleUpdateRolesController: async (req: Request, res: Response) => {
+      if (req.query.action == 'add') {
+        await usersAuthService.enableUserRoles(req.body)
+        await usersDatabaseService.addUserRoles(req.body)
+      } else if (req.query.action == 'disable') {
+        await usersAuthService.disableUserRoles(req.body)
+      } else if (req.query.action == 'delete') {
+        await usersAuthService.disableUserRoles(req.body)
+        await usersDatabaseService.deleteUserRoles(req.body)
+      }
+      res.send('Successfully updated user roles!')
+    },
   },
   {
     get(target, prop) {

@@ -26,6 +26,48 @@ module.exports = new Proxy(
       const res = await stcf_db.query(query)
       return res.rows
     },
+    deleteRoles: async ({
+      roles,
+      personId,
+    }: {
+      roles: string[]
+      personId: number
+    }) => {
+      const query = format(
+        `
+        DELETE FROM organizationpersonrole
+        USING role, person
+        WHERE role.roleid = organizationpersonrole.roleid
+        AND role.name = ANY(ARRAY[%L]::text[])
+        AND person.personid = %L;
+        `,
+        roles,
+        personId,
+      )
+
+      await stcf_db.query(query)
+    },
+    addRoles: async ({
+      roles,
+      personId,
+    }: {
+      roles: string[]
+      personId: number
+    }) => {
+      const query = format(
+        `
+        INSERT INTO organizationpersonrole (entrydate, roleid, personid)
+        SELECT now(), role.roleid, %L
+        FROM role
+        WHERE role.name = ANY(ARRAY[%L]::text[])
+        ON CONFLICT DO NOTHING;
+        `,
+        personId,
+        roles,
+      )
+
+      await stcf_db.query(query)
+    },
   },
   {
     get(target, prop) {

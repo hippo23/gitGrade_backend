@@ -14,6 +14,18 @@ userDataRouter.patch(
   userDataController.updateAuthAccountsController,
 )
 
+// to get all their roles from auth
+userDataRouter.get(
+  '/:userId/roles',
+  userDataController.retrieveUserRolesController,
+)
+
+userDataRouter.patch(
+  '/roles',
+  jsonParser,
+  userDataController.handleUpdateRolesController,
+)
+
 module.exports = userDataRouter
 
 export {}
