@@ -107,7 +107,7 @@
     "noImplicitAny": false
   },
   "include": [
-    "/src/**/*",
+    "./src/**/*",
     "./src/types/environment.d.ts"
   ],
 }
