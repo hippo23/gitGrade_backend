@@ -85,7 +85,7 @@ module.exports = new Proxy(
         SELECT
             courseid, name, description, units
         FROM
-            course
+            public.course
         ORDER BY
           name ASC
         `,
