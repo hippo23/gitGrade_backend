@@ -4,9 +4,6 @@ const express = require('express')
 const cors = require('cors')
 const port = 3000
 const bodyParser = require('body-parser')
-const { expressjwt: jwt } = require('express-jwt')
-const jwksRsa = require('jwks-rsa')
-const jwtAuthz = require('express-jwt-authz')
 const {
   winston,
   morganMiddleware,
