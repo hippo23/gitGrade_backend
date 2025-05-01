@@ -1,7 +1,7 @@
 import { Pool } from "pg";
-import { betterAuth } from "better-auth/*";
+import { betterAuth } from "better-auth";
 
-const { PG_AUTH_HOST, PG_AUTH_DB, PG_AUTH_USER, PG_AUTH_PASSWORD } = process.env
+const { PG_AUTH_HOST, PG_AUTH_DB, PG_AUTH_USER, PG_AUTH_PASSWORD, PG_AUTH_CONNECTION_STRING } = process.env
 
 const AUTH_DB_DETAILS = {
     host: PG_AUTH_HOST as string,
@@ -14,6 +14,12 @@ const AUTH_DB_DETAILS = {
     },
   }
 
-export default betterAuth({
- database: new Pool(AUTH_DB_DETAILS)
+export const auth = betterAuth({
+ database: new Pool({connectionString: PG_AUTH_CONNECTION_STRING, ssl: {
+    rejectUnauthorized: false
+ }}),
+ emailAndPassword: {
+    enabled: true,
+    autoSignIn: false,
+ }
 })
