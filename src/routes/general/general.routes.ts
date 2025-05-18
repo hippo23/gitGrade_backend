@@ -1,3 +1,7 @@
+import { validateRequest } from "@src/middleware/validation.middleware"
+import { infosheetSchema } from "@src/types/onboarding/onboarding"
+import { z } from "zod"
+
 const generalController = require('./../../controllers/general/general.controllers')
 const bodyParser = require('body-parser')
 const express = require('express')
@@ -12,6 +16,11 @@ generalRouter.get(
 generalRouter.get(
   '/calendar_sessions/semesters',
   generalController.retrieveSemesters,
+)
+
+generalRouter.get(
+  '/onboard_user', validateRequest(infosheetSchema.extend({authId: z.string().min(1), dbId: z.number()})),
+  generalController.onboardUser
 )
 
 module.exports = generalRouter

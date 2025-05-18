@@ -1,25 +1,41 @@
-import { Pool } from "pg";
 import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@src/config/auth_db.config";
+import { admin, openAPI } from "better-auth/plugins"
+import * as schema from './../../auth-schema'
+import { ac, school_admin, superadmin, student, faculty, guest } from "./auth/permissions";
+import { guardAdminApiRoutes, infosheetPlugin } from "@src/utils/auth/middleware";
 
-const { PG_AUTH_HOST, PG_AUTH_DB, PG_AUTH_USER, PG_AUTH_PASSWORD, PG_AUTH_CONNECTION_STRING } = process.env
 
-const AUTH_DB_DETAILS = {
-    host: PG_AUTH_HOST as string,
-    database: PG_AUTH_DB as string,
-    user: PG_AUTH_USER as string,
-    password: PG_AUTH_PASSWORD as string,
-    port: 5432,
-    ssl: {
-      rejectUnauthorized: false as boolean,
-    },
-  }
+const { PG_AUTH_CONNECTION_STRING } = process.env
 
 export const auth = betterAuth({
- database: new Pool({connectionString: PG_AUTH_CONNECTION_STRING, ssl: {
-    rejectUnauthorized: false
- }}),
+ database: drizzleAdapter(db, {
+   provider: 'pg',
+  schema: {
+   ...schema,
+  }
+ }),
  emailAndPassword: {
     enabled: true,
     autoSignIn: false,
- }
+ },
+ plugins: [
+   admin({
+      defaultRole: "guest",
+      adminRoles: ["admin", "superadmin"],
+      ac,
+      roles: {
+         school_admin,
+         superadmin,
+         faculty,
+         student,
+         guest
+      }
+   }),
+   openAPI(),
+   guardAdminApiRoutes(),
+   infosheetPlugin()
+ ],
+ trustedOrigins: ['http://localhost:8080']
 })

@@ -1,0 +1,1572 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "data-store.organization": {
+      "name": "organization",
+      "schema": "data-store",
+      "columns": {
+        "organizationid": {
+          "name": "organizationid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "shortname": {
+          "name": "shortname",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.course": {
+      "name": "course",
+      "schema": "data-store",
+      "columns": {
+        "courseid": {
+          "name": "courseid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "units": {
+          "name": "units",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organizationid": {
+          "name": "organizationid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "course_organizationid_fkey": {
+          "name": "course_organizationid_fkey",
+          "tableFrom": "course",
+          "tableTo": "organization",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationid"
+          ],
+          "columnsTo": [
+            "organizationid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_name": {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_name"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.organizationcalendar": {
+      "name": "organizationcalendar",
+      "schema": "data-store",
+      "columns": {
+        "organizationcalendarid": {
+          "name": "organizationcalendarid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "organizationid": {
+          "name": "organizationid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "academic_year": {
+          "name": "academic_year",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organizationcalendar_organizationid_fkey": {
+          "name": "organizationcalendar_organizationid_fkey",
+          "tableFrom": "organizationcalendar",
+          "tableTo": "organization",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationid"
+          ],
+          "columnsTo": [
+            "organizationid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_calendar_academic_year": {
+          "columns": [
+            "organizationcalendarid",
+            "academic_year"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_calendar_academic_year"
+        }
+      },
+      "checkConstraints": {
+        "academic_year_format": {
+          "name": "academic_year_format",
+          "value": "((academic_year)::text ~ '^\\d{4}-\\d{4}$'::text) AND ((\"substring\"((academic_year)::text, '^\\d{4}'::text))::integer < (\"substring\"((academic_year)::text, '\\d{4}$'::text))::integer)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.organizationcalendarsemester": {
+      "name": "organizationcalendarsemester",
+      "schema": "data-store",
+      "columns": {
+        "organizationcalendarsemesterid": {
+          "name": "organizationcalendarsemesterid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "semester": {
+          "name": "semester",
+          "type": "semestral_period",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organizationcalendarid": {
+          "name": "organizationcalendarid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "startdate": {
+          "name": "startdate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_DATE"
+        },
+        "enddate": {
+          "name": "enddate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organizationcalendarsemester_organizationcalendarid_fkey": {
+          "name": "organizationcalendarsemester_organizationcalendarid_fkey",
+          "tableFrom": "organizationcalendarsemester",
+          "tableTo": "organizationcalendar",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationcalendarid"
+          ],
+          "columnsTo": [
+            "organizationcalendarid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_semester_year": {
+          "columns": [
+            "semester",
+            "organizationcalendarid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_semester_year"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.coursesection": {
+      "name": "coursesection",
+      "schema": "data-store",
+      "columns": {
+        "coursesectionid": {
+          "name": "coursesectionid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "maximumcapacity": {
+          "name": "maximumcapacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "completionstatus": {
+          "name": "completionstatus",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "courseid": {
+          "name": "courseid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "organizationcalendarsemesterid": {
+          "name": "organizationcalendarsemesterid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coursesection_courseid_fkey": {
+          "name": "coursesection_courseid_fkey",
+          "tableFrom": "coursesection",
+          "tableTo": "course",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "courseid"
+          ],
+          "columnsTo": [
+            "courseid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "coursesection_organizationcalendarsemesterid_fkey": {
+          "name": "coursesection_organizationcalendarsemesterid_fkey",
+          "tableFrom": "coursesection",
+          "tableTo": "organizationcalendarsemester",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationcalendarsemesterid"
+          ],
+          "columnsTo": [
+            "organizationcalendarsemesterid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_section": {
+          "columns": [
+            "name",
+            "courseid",
+            "organizationcalendarsemesterid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_section"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.role": {
+      "name": "role",
+      "schema": "data-store",
+      "columns": {
+        "roleid": {
+          "name": "roleid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organizationid": {
+          "name": "organizationid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "role_organizationid_fkey": {
+          "name": "role_organizationid_fkey",
+          "tableFrom": "role",
+          "tableTo": "organization",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationid"
+          ],
+          "columnsTo": [
+            "organizationid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.organizationpersonrole": {
+      "name": "organizationpersonrole",
+      "schema": "data-store",
+      "columns": {
+        "organizationpersonroleid": {
+          "name": "organizationpersonroleid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entrydate": {
+          "name": "entrydate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "exitdate": {
+          "name": "exitdate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roleid": {
+          "name": "roleid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "personid": {
+          "name": "personid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organizationpersonrole_roleid_fkey": {
+          "name": "organizationpersonrole_roleid_fkey",
+          "tableFrom": "organizationpersonrole",
+          "tableTo": "role",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "roleid"
+          ],
+          "columnsTo": [
+            "roleid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organizationpersonrole_personid_fkey": {
+          "name": "organizationpersonrole_personid_fkey",
+          "tableFrom": "organizationpersonrole",
+          "tableTo": "person",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "personid"
+          ],
+          "columnsTo": [
+            "personid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_assignment": {
+          "columns": [
+            "roleid",
+            "personid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_assignment"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.person": {
+      "name": "person",
+      "schema": "data-store",
+      "columns": {
+        "personid": {
+          "name": "personid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "firstname": {
+          "name": "firstname",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastname": {
+          "name": "lastname",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "middlename": {
+          "name": "middlename",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birthday": {
+          "name": "birthday",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authid": {
+          "name": "authid",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.studentcoursesection": {
+      "name": "studentcoursesection",
+      "schema": "data-store",
+      "columns": {
+        "studentcoursesectionid": {
+          "name": "studentcoursesectionid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "coursesectionid": {
+          "name": "coursesectionid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "organizationpersonroleid": {
+          "name": "organizationpersonroleid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grade": {
+          "name": "grade",
+          "type": "grade_value",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "studentcoursesection_coursesectionid_fkey": {
+          "name": "studentcoursesection_coursesectionid_fkey",
+          "tableFrom": "studentcoursesection",
+          "tableTo": "coursesection",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "coursesectionid"
+          ],
+          "columnsTo": [
+            "coursesectionid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "studentcoursesection_organizationpersonroleid_fkey": {
+          "name": "studentcoursesection_organizationpersonroleid_fkey",
+          "tableFrom": "studentcoursesection",
+          "tableTo": "organizationpersonrole",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationpersonroleid"
+          ],
+          "columnsTo": [
+            "organizationpersonroleid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_student_section": {
+          "columns": [
+            "coursesectionid",
+            "organizationpersonroleid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_student_section"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.pendingstudentcoursesection": {
+      "name": "pendingstudentcoursesection",
+      "schema": "data-store",
+      "columns": {
+        "pendingstudentcoursesectionid": {
+          "name": "pendingstudentcoursesectionid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "studentcoursesectionid": {
+          "name": "studentcoursesectionid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_DATE"
+        },
+        "grade_status": {
+          "name": "grade_status",
+          "type": "grade_status",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "remarks": {
+          "name": "remarks",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "NULL"
+        },
+        "grade": {
+          "name": "grade",
+          "type": "grade_value",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pendingstudentcoursesection_studentcoursesectionid_fkey": {
+          "name": "pendingstudentcoursesection_studentcoursesectionid_fkey",
+          "tableFrom": "pendingstudentcoursesection",
+          "tableTo": "studentcoursesection",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "studentcoursesectionid"
+          ],
+          "columnsTo": [
+            "studentcoursesectionid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_grade_studentcoursesection": {
+          "columns": [
+            "studentcoursesectionid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_grade_studentcoursesection"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.degree": {
+      "name": "degree",
+      "schema": "data-store",
+      "columns": {
+        "degreeid": {
+          "name": "degreeid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "degree_type",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "length": {
+          "name": "length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.announcement": {
+      "name": "announcement",
+      "schema": "data-store",
+      "columns": {
+        "announcementid": {
+          "name": "announcementid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdat": {
+          "name": "createdat",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lasteditedat": {
+          "name": "lasteditedat",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "author": {
+          "name": "author",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "announcement_author_fkey": {
+          "name": "announcement_author_fkey",
+          "tableFrom": "announcement",
+          "tableTo": "organizationpersonrole",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "author"
+          ],
+          "columnsTo": [
+            "organizationpersonroleid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.forum": {
+      "name": "forum",
+      "schema": "data-store",
+      "columns": {
+        "forumid": {
+          "name": "forumid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coursesectionid": {
+          "name": "coursesectionid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "forum_coursesectionid_fkey": {
+          "name": "forum_coursesectionid_fkey",
+          "tableFrom": "forum",
+          "tableTo": "coursesection",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "coursesectionid"
+          ],
+          "columnsTo": [
+            "coursesectionid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "forum_name_coursesectionid_key": {
+          "columns": [
+            "name",
+            "coursesectionid"
+          ],
+          "nullsNotDistinct": false,
+          "name": "forum_name_coursesectionid_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.timeslot": {
+      "name": "timeslot",
+      "schema": "data-store",
+      "columns": {
+        "timeslotid": {
+          "name": "timeslotid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "day",
+          "typeSchema": "data-store",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.slot_tag": {
+      "name": "slot_tag",
+      "schema": "data-store",
+      "columns": {
+        "slot_tagid": {
+          "name": "slot_tagid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "citext",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "slot_tag_name_key": {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false,
+          "name": "slot_tag_name_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.announcement_tag": {
+      "name": "announcement_tag",
+      "schema": "data-store",
+      "columns": {
+        "announcement_tag_id": {
+          "name": "announcement_tag_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "citext",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "announcement_tag_name_key": {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false,
+          "name": "announcement_tag_name_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.facultysectionassignment": {
+      "name": "facultysectionassignment",
+      "schema": "data-store",
+      "columns": {
+        "organizationpersonroleid": {
+          "name": "organizationpersonroleid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coursesectionid": {
+          "name": "coursesectionid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "facultysectionassignment_organizationpersonroleid_fkey": {
+          "name": "facultysectionassignment_organizationpersonroleid_fkey",
+          "tableFrom": "facultysectionassignment",
+          "tableTo": "organizationpersonrole",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "organizationpersonroleid"
+          ],
+          "columnsTo": [
+            "organizationpersonroleid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "facultysectionassignment_coursesectionid_fkey": {
+          "name": "facultysectionassignment_coursesectionid_fkey",
+          "tableFrom": "facultysectionassignment",
+          "tableTo": "coursesection",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "coursesectionid"
+          ],
+          "columnsTo": [
+            "coursesectionid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "facultysectionassignment_pkey": {
+          "name": "facultysectionassignment_pkey",
+          "columns": [
+            "organizationpersonroleid",
+            "coursesectionid"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.degreecourse": {
+      "name": "degreecourse",
+      "schema": "data-store",
+      "columns": {
+        "degreeid": {
+          "name": "degreeid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "courseid": {
+          "name": "courseid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "degreecourse_degreeid_fkey": {
+          "name": "degreecourse_degreeid_fkey",
+          "tableFrom": "degreecourse",
+          "tableTo": "degree",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "degreeid"
+          ],
+          "columnsTo": [
+            "degreeid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "degreecourse_courseid_fkey": {
+          "name": "degreecourse_courseid_fkey",
+          "tableFrom": "degreecourse",
+          "tableTo": "course",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "courseid"
+          ],
+          "columnsTo": [
+            "courseid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "degreecourse_pkey": {
+          "name": "degreecourse_pkey",
+          "columns": [
+            "degreeid",
+            "courseid"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.forumannouncement": {
+      "name": "forumannouncement",
+      "schema": "data-store",
+      "columns": {
+        "forumid": {
+          "name": "forumid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "announcementid": {
+          "name": "announcementid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "forumannouncement_forumid_fkey": {
+          "name": "forumannouncement_forumid_fkey",
+          "tableFrom": "forumannouncement",
+          "tableTo": "forum",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "forumid"
+          ],
+          "columnsTo": [
+            "forumid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "forumannouncement_announcementid_fkey": {
+          "name": "forumannouncement_announcementid_fkey",
+          "tableFrom": "forumannouncement",
+          "tableTo": "announcement",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "announcementid"
+          ],
+          "columnsTo": [
+            "announcementid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "forumannouncement_pkey": {
+          "name": "forumannouncement_pkey",
+          "columns": [
+            "forumid",
+            "announcementid"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.timeslot_tags": {
+      "name": "timeslot_tags",
+      "schema": "data-store",
+      "columns": {
+        "timeslotid": {
+          "name": "timeslotid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_tagid": {
+          "name": "slot_tagid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "timeslot_tags_timeslotid_fkey": {
+          "name": "timeslot_tags_timeslotid_fkey",
+          "tableFrom": "timeslot_tags",
+          "tableTo": "timeslot",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "timeslotid"
+          ],
+          "columnsTo": [
+            "timeslotid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "timeslot_tags_slot_tagid_fkey": {
+          "name": "timeslot_tags_slot_tagid_fkey",
+          "tableFrom": "timeslot_tags",
+          "tableTo": "slot_tag",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "slot_tagid"
+          ],
+          "columnsTo": [
+            "slot_tagid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "timeslot_tags_pkey": {
+          "name": "timeslot_tags_pkey",
+          "columns": [
+            "timeslotid",
+            "slot_tagid"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.announcement_tag_link": {
+      "name": "announcement_tag_link",
+      "schema": "data-store",
+      "columns": {
+        "announcementid": {
+          "name": "announcementid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "announcement_tag_id": {
+          "name": "announcement_tag_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "announcement_tag_link_announcementid_fkey": {
+          "name": "announcement_tag_link_announcementid_fkey",
+          "tableFrom": "announcement_tag_link",
+          "tableTo": "announcement",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "announcementid"
+          ],
+          "columnsTo": [
+            "announcementid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "announcement_tag_link_announcement_tag_id_fkey": {
+          "name": "announcement_tag_link_announcement_tag_id_fkey",
+          "tableFrom": "announcement_tag_link",
+          "tableTo": "announcement_tag",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "announcement_tag_id"
+          ],
+          "columnsTo": [
+            "announcement_tag_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "announcement_tag_link_pkey": {
+          "name": "announcement_tag_link_pkey",
+          "columns": [
+            "announcementid",
+            "announcement_tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "data-store.degreecoursedependencies": {
+      "name": "degreecoursedependencies",
+      "schema": "data-store",
+      "columns": {
+        "dependencyid": {
+          "name": "dependencyid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "courseid": {
+          "name": "courseid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "degreeid": {
+          "name": "degreeid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "degreecoursedependencies_courseid_degreeid_fkey": {
+          "name": "degreecoursedependencies_courseid_degreeid_fkey",
+          "tableFrom": "degreecoursedependencies",
+          "tableTo": "degreecourse",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "courseid",
+            "degreeid"
+          ],
+          "columnsTo": [
+            "courseid",
+            "degreeid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "degreecoursedependencies_dependencyid_degreeid_fkey": {
+          "name": "degreecoursedependencies_dependencyid_degreeid_fkey",
+          "tableFrom": "degreecoursedependencies",
+          "tableTo": "degreecourse",
+          "schemaTo": "data-store",
+          "columnsFrom": [
+            "dependencyid",
+            "degreeid"
+          ],
+          "columnsTo": [
+            "courseid",
+            "degreeid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "degreecoursedependencies_pkey": {
+          "name": "degreecoursedependencies_pkey",
+          "columns": [
+            "dependencyid",
+            "courseid",
+            "degreeid"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "data-store.approvalstatus_enum": {
+      "name": "approvalstatus_enum",
+      "values": [
+        "rejected",
+        "pending",
+        "approved"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.day": {
+      "name": "day",
+      "values": [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.degree_type": {
+      "name": "degree_type",
+      "values": [
+        "BA",
+        "BS",
+        "VOCATIONAL"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.grade_status": {
+      "name": "grade_status",
+      "values": [
+        "rejected",
+        "pending",
+        "approved"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.grade_value": {
+      "name": "grade_value",
+      "values": [
+        "1.00",
+        "1.25",
+        "1.50",
+        "1.75",
+        "2.00",
+        "2.25",
+        "2.50",
+        "2.75",
+        "3.00",
+        "5.00"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.semester": {
+      "name": "semester",
+      "values": [
+        "1st",
+        "2nd"
+      ],
+      "schema": "data-store"
+    },
+    "data-store.semestral_period": {
+      "name": "semestral_period",
+      "values": [
+        "1",
+        "2"
+      ],
+      "schema": "data-store"
+    }
+  },
+  "schemas": {
+    "data-store": "data-store"
+  },
+  "sequences": {
+    "data-store.organization_organizationid_seq": {
+      "name": "organization_organizationid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.organizationcalendarsemester_organizationcalendarsemesterid_seq": {
+      "name": "organizationcalendarsemester_organizationcalendarsemesterid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.course_courseid_seq": {
+      "name": "course_courseid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.organizationcalendar_organizationcalendarid_seq": {
+      "name": "organizationcalendar_organizationcalendarid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.coursesection_coursesectionid_seq": {
+      "name": "coursesection_coursesectionid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.person_personid_seq": {
+      "name": "person_personid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.role_roleid_seq": {
+      "name": "role_roleid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.organizationpersonrole_organizationpersonroleid_seq": {
+      "name": "organizationpersonrole_organizationpersonroleid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.studentcoursesection_studentcoursesectionid_seq": {
+      "name": "studentcoursesection_studentcoursesectionid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.pendingstudentcoursesection_pendingstudentcoursesectionid_seq": {
+      "name": "pendingstudentcoursesection_pendingstudentcoursesectionid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.degree_degreeid_seq": {
+      "name": "degree_degreeid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.announcement_announcementid_seq": {
+      "name": "announcement_announcementid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.forum_forumid_seq": {
+      "name": "forum_forumid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.slot_tag_slot_tagid_seq": {
+      "name": "slot_tag_slot_tagid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.timeslot_timeslotid_seq": {
+      "name": "timeslot_timeslotid_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "data-store.announcement_tag_announcement_tag_id_seq": {
+      "name": "announcement_tag_announcement_tag_id_seq",
+      "schema": "data-store",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    }
+  },
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {
+      "pendingstudentcoursesection": {
+        "columns": {
+          "remarks": {
+            "isDefaultAnExpression": true
+          }
+        }
+      }
+    }
+  }
+}

@@ -109,5 +109,5 @@
   "include": [
     "./src/**/*",
     "./src/types/environment.d.ts"
-  ],
+, "drizzle.config.ts"  ],
 }
